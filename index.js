@@ -16,13 +16,11 @@ mongoose.connect(url).then(() => {
 app.use(express.json());
 
 
-const coursesRoutes = require('./routes/courses.route.js');
 const usersRoutes = require('./routes/users.route.js');
 const swaggerDocs = require('./utils/swagger.js');
 
-app.use('/api/courses' ,coursesRoutes);
+app.use('/', swaggerDocs);
 app.use('/api/users' ,usersRoutes);
-app.use('/api/docs', swaggerDocs);
 
 app.use((error, req, res, next) => {
     const statusCode = error.statusCode || 500; 

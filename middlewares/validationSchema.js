@@ -1,17 +1,42 @@
-const {body} = require('express-validator');
+const { body } = require('express-validator');
+const status = require('../utils/statusProject.js');
+const visibility = require('../utils/visibilityPro.js');
 
-const validationSchema = () => {
+const projectValidationSchema = () => {
     return [
-        body("name")
+        body("title")
             .notEmpty()
-            .isLength({min: 5})
-            .withMessage('Name must be at least 5 characters long')
-        ,body("price")
-            .isNumeric()
-            .withMessage('Price must be a positive number')
+            .withMessage('Project title is required')
+            .isLength({ min: 3 })
+            .withMessage('Title must be at least 3 characters long'),
+        body("status")
+            .optional()
+            .isIn([status.ACTIVE, status.COMPLETED, status.ARCHIVED])
+            .withMessage('Status must be ACTIVE, COMPLETED, or ARCHIVED'),
+        body("visibility")
+            .optional()
+            .isIn([visibility.PUBLIC, visibility.PRIVATE])
+            .withMessage('Visibility must be PUBLIC or PRIVATE')
     ];
-}
+};
 
-module.exports ={
-    validationSchema
-}
+
+const blueprintValidationSchema = () => {
+    return [
+        body("title")
+            .notEmpty()
+            .withMessage('Blueprint title is required')
+            .isLength({ min: 3 })
+            .withMessage('Title must be at least 3 characters long'),
+        body("projectId")
+            .notEmpty()
+            .withMessage('Project ID is required')
+            .isMongoId()
+            .withMessage('Invalid Project ID format')
+    ];
+};
+
+module.exports = {
+    projectValidationSchema,
+    blueprintValidationSchema
+};

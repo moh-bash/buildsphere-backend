@@ -7,7 +7,7 @@ const generateJWT = require("../utils/generateJWT.js")
 
 const getAllUsers = asyncWrapper(async (req, res, next) => {
     const users = await User.find({}, { password: 0, __v: 0 });
-    res.json({ status: httpStatusText.SCCESS, data: { users } });
+    res.json({ status: httpStatusText.SUCCESS, data: { users } });
 });
 
 const registerUser = asyncWrapper(async (req, res, next) => {
@@ -23,7 +23,8 @@ const registerUser = asyncWrapper(async (req, res, next) => {
         name,
         email,
         password: hashPassword,
-        role
+        role,
+        avatar: req.file.filename
     });
 
     const token = await generateJWT({ id: newUser._id, email: newUser.email, role: newUser.role });
@@ -35,9 +36,11 @@ const registerUser = asyncWrapper(async (req, res, next) => {
             id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role
+            role: user.role,
+            avatar: user.avatar
         };
-    };[]
+    };
+
     res.status(201).json({
         status: httpStatusText.SUCCESS,
         data: {
@@ -64,9 +67,9 @@ const loginUser = asyncWrapper(async (req, res, next) => {
 
     const matchedPassword = await bcrypt.compare(password, user.password);
 
-    if (user && matchedPassword) {
+   if (matchedPassword) { 
         const token = await generateJWT({ id: user._id, email: user.email, role: user.role });
-        res.json({ status: httpStatusText.SCCESS, data: { token } });
+        return res.json({ status: httpStatusText.SUCCESS, data: { token } });
     } else {
         const error = appError.create(401, httpStatusText.FAILED, "Invalid email or password");
         return next(error);

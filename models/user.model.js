@@ -21,9 +21,13 @@ const userSchemanew = mongoose.Schema({
         enum: ['USER', 'ADMIN'],
         default: 'USER' 
     },
+    avatar: {
+        type: String,
+        default: 'https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png'
+    },
     token:{
         type: String
     }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchemanew);

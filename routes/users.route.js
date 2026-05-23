@@ -42,4 +42,75 @@ router.route('/register')
 router.route('/login')
         .post(usersController.loginUser);
 
+
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UserRegister:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *       properties:
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *           format: password
+ *         avatar:
+ *           type: string
+ *           format: binary
+ *           description: Profile picture file
+ */
+
+/**
+ * @swagger
+ * /api/users/register:
+ *   post:
+ *     summary: Register a new user with an avatar
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             $ref: '#/components/schemas/UserRegister'
+ *     responses:
+ *       211:
+ *         description: User registered successfully
+ *       411:
+ *         description: Validation error
+ */
+
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Login user and return JWT Token
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       211:
+ *         description: Login successful
+ */
+
 module.exports = router;

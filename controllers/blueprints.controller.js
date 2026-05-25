@@ -32,23 +32,66 @@ const createBlueprint = asyncWrapper(async (req, res, next) => {
 });
 
 
-const mongoose = require('mongoose'); // 1. تأكد من وجود هذا السطر في أعلى ملف الـ controller
+const updateBlueprint = asyncWrapper(async (req, res, next) => {
+    const { id } = req.params;
+    const { title, description } = req.body;
+
+    let blueprint = await Blueprint.findById(id);
+    if (!blueprint) {
+        return next(appError.create(404, httpStatusText.FAILED, "Blueprint not found"));
+    }
+
+    if (title) blueprint.title = title;
+    if (description) blueprint.description = description;
+
+    if (req.files && req.files.length > 0) {
+        const newImages = req.files.map(file => ({
+            imageUrl: `/uploads/${file.filename}`,
+            notes: []
+        }));
+        blueprint.images.push(...newImages);
+    }
+
+    await blueprint.save();
+
+    res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: { blueprint }
+    });
+});
+
+
+const deleteBlueprint = asyncWrapper(async (req, res, next) => {
+    const { id } = req.params;
+
+    const blueprint = await Blueprint.findById(id);
+    if (!blueprint) {
+        return next(appError.create(404, httpStatusText.FAILED, "Blueprint not found"));
+    }
+
+    await Blueprint.deleteOne({ _id: id });
+
+    res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: null
+    });
+});
+
+
 
 const addNoteToImage = asyncWrapper(async (req, res, next) => {
     const { blueprintId, imageId } = req.params;
     const { text } = req.body;
 
-    // 2. تحويل النصوص يدويًا إلى ObjectIds لضمان مطابقتها في قاعدة البيانات
     const objectBlueprintId = new mongoose.Types.ObjectId(blueprintId);
     const objectImageId = new mongoose.Types.ObjectId(imageId);
 
-    // 3. تنفيذ الاستعلام بالـ ObjectIds المحوّلة
     const updatedBlueprint = await Blueprint.findOneAndUpdate(
         { _id: objectBlueprintId, "images._id": objectImageId },
         { $push: { "images.$[img].notes": { text, author: req.decoded.id } } },
         { 
             arrayFilters: [{ "img._id": objectImageId }], 
-            returnDocument: 'after' // ليعيد لك المخطط بعد إضافة الملاحظة
+            returnDocument: 'after'
         }
     );
 
@@ -75,6 +118,8 @@ const addComment = asyncWrapper(async (req, res, next) => {
 
 module.exports = {
     createBlueprint,
+    updateBlueprint, 
+    deleteBlueprint,   
     addNoteToImage,
     addComment
 };

@@ -6,6 +6,57 @@ const allowedTo = require('../middlewares/allowedTo.js');
 
 const router = express.Router({ mergeParams: true });
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Blueprint:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: "6a0f6010937f46c62378cbff"
+ *
+ *         title:
+ *           type: string
+ *           example: "Ground Floor Architectural Plan"
+ *
+ *         description:
+ *           type: string
+ *           example: "Detailed layout of columns, walls, and luxury entrances."
+ *
+ *         projectId:
+ *           type: string
+ *           example: "6a0f6010937f46c62378cbaa"
+ *
+ *         images:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *                 example: "6a0f70890937bf8b090a48d7"
+ *
+ *               imageUrl:
+ *                 type: string
+ *                 example: "/uploads/blueprint-1716645600000.jpg"
+ *
+ *               notes:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
+
 router.use(verifyToken);
 
 /**

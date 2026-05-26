@@ -3,6 +3,7 @@ const Comment = require('../models/comment.model.js');
 const asyncWrapper = require('../middlewares/asyncWrapper');
 const httpStatusText = require('../utils/httpStatusTexxt.js');
 const appError = require('../utils/appError.js');
+const mongoose = require('mongoose');
 
 const createBlueprint = asyncWrapper(async (req, res, next) => {
     const { title, description, projectId } = req.body;
@@ -103,6 +104,30 @@ const addNoteToImage = asyncWrapper(async (req, res, next) => {
 });
 
 
+const deleteNoteFromImage = asyncWrapper(async (req, res, next) => {
+    const { blueprintId, imageId, noteId } = req.params;
+
+    const objectBlueprintId = new mongoose.Types.ObjectId(blueprintId);
+    const objectImageId = new mongoose.Types.ObjectId(imageId);
+    const objectNoteId = new mongoose.Types.ObjectId(noteId);
+
+    const updatedBlueprint = await Blueprint.findOneAndUpdate(
+        { _id: objectBlueprintId, "images._id": objectImageId },
+        { 
+            $pull: { "images.$.notes": { _id: objectNoteId } } 
+        },
+        { returnDocument: 'after' }
+    );
+
+    if (!updatedBlueprint) {
+        return next(appError.create(404, httpStatusText.FAILED, "Blueprint, Image, or Note not found"));
+    }
+
+    res.status(200).json({ status: httpStatusText.SUCCESS, data: { blueprint: updatedBlueprint } });
+});
+
+
+
 const addComment = asyncWrapper(async (req, res, next) => {
     const { projectId, text } = req.body;
     
@@ -121,5 +146,6 @@ module.exports = {
     updateBlueprint, 
     deleteBlueprint,   
     addNoteToImage,
+    deleteNoteFromImage,
     addComment
 };

@@ -208,8 +208,121 @@ router.route('/:id')
     .patch(allowedTo('USER', 'ADMIN'), blueprintUpload, blueprintsController.updateBlueprint)
     .delete(allowedTo('USER', 'ADMIN'), blueprintsController.deleteBlueprint);
 
+/**
+ * @swagger
+ * /api/blueprints/{blueprintId}/images/{imageId}/notes:
+ *   post:
+ *     summary: Add a technical note to a blueprint image
+ *     description: Adds a new engineering remark or note into the notes array of a specific image inside a blueprint.
+ *     tags: [Blueprints]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: blueprintId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the blueprint
+ *
+ *       - in: path
+ *         name: imageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the specific image inside the blueprint
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 example: "noooooot al;idjai يعني هون نص الملاحظة"
+ *
+ *     responses:
+ *       200:
+ *         description: Note added successfully. Returns the updated blueprint.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     blueprint:
+ *                       $ref: '#/components/schemas/Blueprint'
+ *
+ *       404:
+ *         description: Blueprint or Image not found.
+ */
+
+/**
+ * @swagger
+ * /api/blueprints/{blueprintId}/images/{imageId}/notes/{noteId}:
+ *   delete:
+ *     summary: Delete a technical note from a blueprint image
+ *     description: Removes a specific note by its ID from the notes array of a specific image inside a blueprint.
+ *     tags: [Blueprints]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: blueprintId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the blueprint
+ *
+ *       - in: path
+ *         name: imageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the image containing the note
+ *
+ *       - in: path
+ *         name: noteId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the note to be deleted
+ *
+ *     responses:
+ *       200:
+ *         description: Note deleted successfully. Returns the updated blueprint without the deleted note.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     blueprint:
+ *                       $ref: '#/components/schemas/Blueprint'
+ *
+ *       404:
+ *         description: Blueprint, Image, or Note not found.
+ */
+
 router.route('/:blueprintId/images/:imageId/notes')
     .post(allowedTo('USER', 'ADMIN'), blueprintsController.addNoteToImage);
+
+router.route('/:blueprintId/images/:imageId/notes/:noteId')
+    .delete(allowedTo('USER', 'ADMIN'), blueprintsController.deleteNoteFromImage);
 
 router.post('/comments', allowedTo('USER', 'ADMIN'), blueprintsController.addComment);
 module.exports = router;

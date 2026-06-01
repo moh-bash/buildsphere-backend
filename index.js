@@ -13,6 +13,7 @@ const swaggerDocs = require('./utils/swagger.js');
 const usersRoutes = require('./routes/users.route.js');
 const projectsRoutes = require('./routes/projects.route.js');
 const blueprintsRoutes = require('./routes/blueprints.route.js');
+const collaborationsRoutes = require('./routes/collaboration.route.js');
 
 app.use(express.json());
 app.use(cors());
@@ -29,7 +30,8 @@ app.use('/', swaggerDocs);
 app.use('/api/users' ,usersRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/blueprints', blueprintsRoutes);
-app.use("/uploads", express.static(path.join(__dirname, 'uploads')));
+app.use('/api/collaborations', collaborationsRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((error, req, res, next) => {
     const statusCode = error.statusCode || 500; 

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const env =require('dotenv');
 
+const sh =1;
 env.config();
 const app = express();
 const url = process.env.URL_MONGO;

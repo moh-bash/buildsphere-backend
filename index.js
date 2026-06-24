@@ -15,6 +15,8 @@ const usersRoutes = require('./routes/users.route.js');
 const projectsRoutes = require('./routes/projects.route.js');
 const blueprintsRoutes = require('./routes/blueprints.route.js');
 const collaborationsRoutes = require('./routes/collaboration.route.js');
+const profileRoutes = require('./routes/profile.route.js');
+const aiRoutes = require('./routes/ai.route.js');
 
 app.use(express.json());
 app.use(cors());
@@ -32,6 +34,9 @@ app.use('/api/users' ,usersRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/blueprints', blueprintsRoutes);
 app.use('/api/collaborations', collaborationsRoutes);
+app.use('/api/profiles', profileRoutes);
+app.use('/api/ai', aiRoutes);
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((error, req, res, next) => {

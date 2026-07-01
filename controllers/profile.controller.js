@@ -60,9 +60,6 @@ const updateProfile = asyncWrapper(async (req, res, next) => {
 });
 
 module.exports = {
-    updateProfile
-};
-module.exports = {
     getMyProfile,
     getUserProfile,
     updateProfile

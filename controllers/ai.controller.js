@@ -1,48 +1,79 @@
-// 1. استيراد المكتبة
-const puter = require('@heyputer/puter.js');
-
-// 2. إثبات صلاحية الحساب بتمرير التوكن الصريح من ملف .env مباشرة للمكتبة
-if (process.env.PUTER_AUTH_TOKEN) {
-} else {
-    console.error("❌ تحذير: PUTER_AUTH_TOKEN غير موجود في ملف الـ .env");
-}
+const crypto = require("crypto");
+const createPuter = require("../services/puter");
 
 const generate3DModel = async (req, res, next) => {
     try {
-        console.log("🔄 جاري إرسال طلب نصي واختبار الاتصال الموثق مع Puter AI...");
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Image file is required" });
+        }
 
-        // التحقق الإضافي داخل الدالة لحماية السيرفر
-        if (!process.env.PUTER_AUTH_TOKEN) {
-            return res.status(500).json({
-                status: "failed",
-                message: "التوكن مفقود في ملف الـ .env، يرجى إضافته باسم PUTER_AUTH_TOKEN"
+        const puter = await createPuter();
+
+        const imageDataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+        const response = await puter.ai.chat(
+            [
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "text",
+                            text: "change from 2d to 3d"
+                        },
+                        {
+                            type: "image_url",
+                            image_url: {
+                                url: imageDataUrl
+                            }
+                        }
+                    ]
+                }
+            ],
+            {
+                model: "gemini-3.1-flash-image-preview",
+            }
+        );
+
+        let generatedImage;
+
+        if (response?.message?.images && response.message.images.length > 0) {
+            generatedImage = response.message.images[0].image_url.url;
+        } else if (response?.message?.image) {
+            generatedImage = response.message.image;
+        } else {
+            return res.status(500).json({ success: false, message: "AI did not return an image" });
+        }
+
+        if (generatedImage.startsWith("http")) {
+            return res.json({
+                success: true,
+                image: generatedImage
             });
         }
 
-        // إرسال الطلب النصي البسيط للتأكد من استجابة الموديل بحسابك
-        const response = await puter.ai.chat("مرحباً، أنا أختبر الاتصال الموثق بك من خادمي الخاص. أجب بجملة قصيرة تؤكد نجاح الاتصال.");
+        const filename = `${crypto.randomUUID()}.png`;
 
-        console.log("✅ تم الاتصال بنجاح واستلام الرد الموثق!");
+        const base64 = generatedImage.replace(/^data:image\/\w+;base64,/, "");
 
-        // استخراج النص المستلم بناءً على هيكلية ردود Puter
-        const textResponse = response?.message?.content || response;
+        const buffer = Buffer.from(base64, "base64");
 
-        // إرسال النتيجة الناجحة لبوستمان
-        res.status(200).json({ 
-            status: "success",
-            message: 'تم التحقق من التوكن والاتصال بنجاح',
-            resultData: textResponse 
+        try {
+            await puter.fs.mkdir("generated");
+        } catch (e) {}
+
+        const filePath = `generated/${filename}`;
+
+        await puter.fs.write(filePath, buffer);
+
+        const url = await puter.fs.getReadURL(filePath);
+
+        res.json({
+            success: true,
+            image: url
         });
 
-    } catch (error) {
-        console.error('❌ فشل الاتصال بالرغم من وضع التوكن:', error);
-        
-        // إرجاع تفاصيل الخطأ لبوستمان للمساعدة في الفحص
-        res.status(500).json({
-            status: "failed",
-            message: error.message || "حدث خطأ أثناء الاتصال بـ Puter",
-            errorDetails: error
-        });
+    } catch (err) {
+        next(err);
     }
 };
 

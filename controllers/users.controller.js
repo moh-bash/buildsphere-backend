@@ -11,6 +11,7 @@ const getAllUsers = asyncWrapper(async (req, res, next) => {
 });
 
 const registerUser = asyncWrapper(async (req, res, next) => {
+    
     const { name, email, password, role } = req.body;
 
     const oldUser = await User.findOne({ email: email });

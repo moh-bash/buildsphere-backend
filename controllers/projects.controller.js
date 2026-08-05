@@ -1,5 +1,6 @@
 const Project = require("../models/project.model.js");
-const Blueprint = require('../models/blueprint.model.js'); 
+const Task = require("../models/task.model.js");
+const Blueprint = require('../models/blueprint.model.js');
 const asyncWrapper = require("../middlewares/asyncWrapper");
 const httpStatusText = require('../utils/httpStatusTexxt.js');
 const appError = require("../utils/appError.js");
@@ -19,7 +20,7 @@ const createProject = asyncWrapper(async (req, res, next) => {
         description,
         status,
         visibility,
-        owner: req.decoded.id 
+        owner: req.decoded.id
     });
 
     await newProject.save();
@@ -46,7 +47,12 @@ const getAllProjects = asyncWrapper(async (req, res, next) => {
 
 
 const getProjectById = asyncWrapper(async (req, res, next) => {
-    const project = await Project.findById(req.params.id).populate('owner', 'name email role');
+    const [project, tasks] = await Promise.all([
+        Project.findById(req.params.id)
+            .populate('owner', 'name email role'),
+        Task.find({ projectId: req.params.id })
+            .populate('creator', 'name email avatar')
+    ]);
 
     if (!project) {
         const error = appError.create(404, httpStatusText.FAILED, "Project not found");
@@ -60,12 +66,13 @@ const getProjectById = asyncWrapper(async (req, res, next) => {
 
     const blueprints = await Blueprint.find({ projectId: project._id });
 
-    res.json({ 
-        status: httpStatusText.SUCCESS, 
-        data: { 
+    res.json({
+        status: httpStatusText.SUCCESS,
+        data: {
             project,
-            blueprints 
-        } 
+            tasks,
+            blueprints
+        }
     });
 });
 

@@ -1,82 +1,37 @@
-const crypto = require("crypto");
-const createPuter = require("../services/puter");
+const { HfInference } = require('@huggingface/inference');
+const env = require('dotenv');
+env.config();
+
+const hf = new HfInference(process.env.HUGGINGFACE_TOKEN);
 
 const generate3DModel = async (req, res, next) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ success: false, message: "Image file is required" });
+            return res.status(400).json({ success: false, message: "Image is required" });
         }
 
-        const puter = await createPuter();
+        const imageBuffer = req.file.buffer;
 
-        const imageDataUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
-
-        const response = await puter.ai.chat(
-            [
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: "change from 2d to 3d"
-                        },
-                        {
-                            type: "image_url",
-                            image_url: {
-                                url: imageDataUrl
-                            }
-                        }
-                    ]
-                }
-            ],
-            {
-                model: "gemini-3.1-flash-image-preview",
+        // سنستخدم موديل Stable Diffusion XL
+        // الموديلات التي تدعم Image-to-Image تختلف قليلاً في الـ Syntax
+        const response = await hf.imageToImage({
+            model: 'stable-diffusion-v1-5/stable-diffusion-v1-5Free-Law-Project/modernbert-embed-base_finetune_512', // هذا الموديل متاح ومجاني
+            inputs: new Blob([imageBuffer]),
+            parameters: {
+                prompt: req.body.prompt || "a 3d architectural style, high detail",
+                strength: 0.7
             }
-        );
-
-        let generatedImage;
-
-        if (response?.message?.images && response.message.images.length > 0) {
-            generatedImage = response.message.images[0].image_url.url;
-        } else if (response?.message?.image) {
-            generatedImage = response.message.image;
-        } else {
-            return res.status(500).json({ success: false, message: "AI did not return an image" });
-        }
-
-        if (generatedImage.startsWith("http")) {
-            return res.json({
-                success: true,
-                image: generatedImage
-            });
-        }
-
-        const filename = `${crypto.randomUUID()}.png`;
-
-        const base64 = generatedImage.replace(/^data:image\/\w+;base64,/, "");
-
-        const buffer = Buffer.from(base64, "base64");
-
-        try {
-            await puter.fs.mkdir("generated");
-        } catch (e) {}
-
-        const filePath = `generated/${filename}`;
-
-        await puter.fs.write(filePath, buffer);
-
-        const url = await puter.fs.getReadURL(filePath);
-
-        res.json({
-            success: true,
-            image: url
         });
 
+        const buffer = Buffer.from(await response.arrayBuffer());
+
+        res.set('Content-Type', 'image/png');
+        res.send(buffer);
+
     } catch (err) {
-        next(err);
+        console.error("HF Error:", err.message);
+        res.status(500).json({ success: false, message: "Model currently busy or unavailable. Please try again." });
     }
 };
 
-module.exports = {
-    generate3DModel
-};
+module.exports = { generate3DModel };

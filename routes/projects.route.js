@@ -163,11 +163,11 @@ router.route('/')
  * @swagger
  * /api/projects/{id}:
  *   get:
- *     summary: Get project by ID with blueprints
- *     description: Fetch details of a specific project by its ID, along with all its related blueprints. If the project is private, only the owner can view it.
+ *     summary: Get project by ID with tasks and blueprints
+ *     description: Fetch full details of a specific project including owner details, collaborators, associated tasks, and blueprints with images and notes.
  *     tags: [Projects]
  *     security:
- *       - BearerAuth: []
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -177,7 +177,7 @@ router.route('/')
  *         description: The Project ID
  *     responses:
  *       200:
- *         description: Project details and blueprints fetched successfully.
+ *         description: Project details, tasks, and blueprints fetched successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -185,12 +185,94 @@ router.route('/')
  *               properties:
  *                 status:
  *                   type: string
- *                   example: "success"
+ *                   example: "SUCCESS"
  *                 data:
  *                   type: object
  *                   properties:
  *                     project:
- *                       $ref: '#/components/schemas/Project'
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           example: "6a145ca0016792a232e5b303"
+ *                         title:
+ *                           type: string
+ *                           example: "ABCD"
+ *                         description:
+ *                           type: string
+ *                           example: "________________/.."
+ *                         status:
+ *                           type: string
+ *                           example: "ACTIVE"
+ *                         visibility:
+ *                           type: string
+ *                           example: "PUBLIC"
+ *                         owner:
+ *                           type: object
+ *                           properties:
+ *                             _id:
+ *                               type: string
+ *                               example: "6a11eed66abd53187add0787"
+ *                             name:
+ *                               type: string
+ *                               example: "joud maklad"
+ *                             email:
+ *                               type: string
+ *                               example: "joud23@gmail.com"
+ *                             role:
+ *                               type: string
+ *                               example: "USER"
+ *                         collaborators:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                     tasks:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             example: "6a7332b01a19fc15e7074170"
+ *                           title:
+ *                             type: string
+ *                             example: "stringv1111"
+ *                           description:
+ *                             type: string
+ *                             example: "string"
+ *                           status:
+ *                             type: string
+ *                             example: "PENDING"
+ *                           creator:
+ *                             type: object
+ *                             properties:
+ *                               _id:
+ *                                 type: string
+ *                                 example: "6a6b470e9ecc728bd528cd0e"
+ *                               name:
+ *                                 type: string
+ *                                 example: "Bashir"
+ *                               email:
+ *                                 type: string
+ *                                 example: "bashir@test.com"
+ *                               avatar:
+ *                                 type: string
+ *                                 example: "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png"
+ *                           projectId:
+ *                             type: string
+ *                             example: "6a145ca0016792a232e5b303"
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
  *                     blueprints:
  *                       type: array
  *                       items:
@@ -198,12 +280,61 @@ router.route('/')
  *                         properties:
  *                           _id:
  *                             type: string
+ *                             example: "6a15b33e8454bd3089fa92c6"
  *                           title:
  *                             type: string
+ *                             example: "مدرسة"
+ *                           description:
+ *                             type: string
+ *                             example: "==="
+ *                           projectId:
+ *                             type: string
+ *                             example: "6a145ca0016792a232e5b303"
  *                           images:
  *                             type: array
  *                             items:
  *                               type: object
+ *                               properties:
+ *                                 _id:
+ *                                   type: string
+ *                                   example: "6a15b33e8454bd3089fa92c7"
+ *                                 imageUrl:
+ *                                   type: string
+ *                                   example: "/uploads/blueprint-1779807038372-134149345.jpeg"
+ *                                 notes:
+ *                                   type: array
+ *                                   items:
+ *                                     type: object
+ *                                     properties:
+ *                                       _id:
+ *                                         type: string
+ *                                         example: "6a15b3c18454bd3089fa9320"
+ *                                       text:
+ *                                         type: string
+ *                                         example: "222"
+ *                                       author:
+ *                                         type: string
+ *                                         example: "6a11eed66abd53187add0787"
+ *                                       createdAt:
+ *                                         type: string
+ *                                         format: date-time
+ *                                       updatedAt:
+ *                                         type: string
+ *                                         format: date-time
+ *                                 createdAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                                 updatedAt:
+ *                                   type: string
+ *                                   format: date-time
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *       401:
+ *         description: Unauthorized - Missing or invalid token.
  *       403:
  *         description: Access denied to this private project.
  *       404:

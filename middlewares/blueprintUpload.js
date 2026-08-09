@@ -1,14 +1,21 @@
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const appError = require('../utils/appError.js');
 const httpStatusTexxt = require('../utils/httpStatusTexxt.js');
 
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads');
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    const ext = file.mimetype.split('/')[1];
-    const newFilename = `blueprint-${Date.now()}-${Math.round(Math.random() * 1E9)}.${ext}`;
+    const ext = path.extname(file.originalname);
+    const newFilename = `blueprint-${Date.now()}-${Math.round(Math.random() * 1E9)}${ext}`;
     cb(null, newFilename);
   }
 });
@@ -23,4 +30,5 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage: storage, fileFilter });
+
 module.exports = upload.array('images', 10);
